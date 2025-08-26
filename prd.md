@@ -121,9 +121,7 @@ Given the file upload functionality, security is critical:
 The PostgreSQL database will maintain the following core tables:
 
 **Authentication & User Management:**
-- **`users`** - Basic user information (id, email, password_hash, first_name, last_name, phone, created_at, updated_at, is_active)
-- **`roles`** - User roles (id, role_name: 'TEACHER', 'STUDENT', 'ADMIN')
-- **`user_roles`** - Many-to-many relationship between users and roles
+- **`users`** - User information and roles (id, email, password_hash, first_name, last_name, phone, role ENUM('TEACHER', 'STUDENT'), created_at, updated_at, is_active)
 - **`user_subjects`** - Students enrolled in subjects, Teachers assigned to subjects (user_id, subject_id, grade_level)
 
 **Core Application Data:**
@@ -139,7 +137,7 @@ The PostgreSQL database will maintain the following core tables:
 ### 3.4 Security Implementation Details
 
 **JWT Token Management:**
-- Tokens contain user ID, role, and subject permissions
+- Tokens contain user ID, role (TEACHER/STUDENT), and subject permissions
 - Token expiration: 24 hours for regular sessions
 - Refresh token mechanism for seamless user experience
 - Secure token storage in HTTP-only cookies (frontend) and memory (backend)
@@ -147,7 +145,7 @@ The PostgreSQL database will maintain the following core tables:
 **Database Security:**
 - Encrypted passwords using BCrypt hashing
 - Prepared statements to prevent SQL injection
-- Row-level security for student data access
+- Role-based data access enforced at application level
 - Audit trails for sensitive operations (grade changes, file uploads)
 
 ### 3.5 Performance Requirements
