@@ -49,11 +49,11 @@ Shiksha tuition center currently lacks a centralized digital platform for:
 - **Assignment Access:** As a student, I want to view all assignments for my enrolled subjects
 - **Email Notifications:** As a student, I want to receive email notifications when new assignments are posted
 
-### 2.3 Assessment Submission
+### 2.3 Assignment Submission
 **Must-Have**
-- **Assessment Upload:** As a student, I want to upload completed assessments as PDF files
-- **Submission Tracking:** As a teacher, I want to see which students have submitted assessments
-- **Teacher Notifications:** As a teacher, I want email notifications when students submit assessments
+- **Assignment Submission:** As a student, I want to upload my completed assignments as PDF files
+- **Submission Tracking:** As a teacher, I want to see which students have submitted their assignments
+- **Teacher Notifications:** As a teacher, I want email notifications when students submit completed assignments
 - **File Security:** As a user, I want assurance that uploaded files are secure and properly validated
 
 ### 2.4 Exam Scheduling
@@ -127,7 +127,7 @@ The PostgreSQL database will maintain the following core tables:
 **Core Application Data:**
 - **`subjects`** - Available subjects (id, subject_name: 'Math', 'Physics', 'Chemistry')
 - **`assignments`** - Teacher-created assignments (id, teacher_id, subject_id, grade_level, title, description, file_path, due_date, created_at)
-- **`assessments`** - Student submissions (id, assignment_id, student_id, file_path, submitted_at, status)
+- **`assignment_submissions`** - Student completed assignment uploads (id, assignment_id, student_id, file_path, submitted_at, status)
 - **`exams`** - Scheduled examinations (id, teacher_id, subject_id, grade_level, exam_date, duration, topics, instructions, created_at)
 - **`grades`** - Exam results (id, exam_id, student_id, total_score, max_score, graded_at, graded_by)
 
@@ -169,7 +169,7 @@ The PostgreSQL database will maintain the following core tables:
 
 **Student Workflow:**
 1. Login → Dashboard → View assignments by subject
-2. Download assignment → Complete → Upload assessment → Teacher notified
+2. Download assignment → Complete → Upload completed assignment → Teacher notified
 3. View exam schedule → Prepare → Check grades after completion
 
 ### 4.2 Interface Requirements
@@ -195,10 +195,10 @@ The PostgreSQL database will maintain the following core tables:
 
 | Feature | Teacher | Student |
 |---------|---------|---------|
-| Upload Assignments | ✅ | ❌ |
+| Upload Assignments (Questions) | ✅ | ❌ |
 | Download Assignments | ✅ | ✅ |
-| Upload Assessments | ❌ | ✅ |
-| Download Assessments | ✅ | ❌ |
+| Upload Completed Assignments | ❌ | ✅ |
+| Download Student Submissions | ✅ | ❌ |
 | Schedule Exams | ✅ | ❌ |
 | View Exam Schedule | ✅ | ✅ |
 | Enter Grades | ✅ | ❌ |
