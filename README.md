@@ -260,11 +260,8 @@ src/
 
 ## 📄 Documentation
 
-- [Product Requirements Document (PRD)](./PRD.md) - Complete project specifications
-- [Database Schema](./docs/database-schema.md) - Detailed database design
-- [API Documentation](./docs/api-documentation.md) - REST API specifications
-- [Deployment Guide](./docs/deployment.md) - AWS infrastructure setup
-- [User Manual](./docs/user-manual.md) - End-user guides for teachers and students
+- [Product Requirements Document (PRD)](./prd.md) - Complete project specifications
+
 
 ## 🐛 Issues & Support
 
