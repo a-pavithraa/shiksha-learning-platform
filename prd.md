@@ -1,61 +1,4 @@
-#### 3.3.6 Dashboard Analytics Views (Database Views/Queries)
-
-```sql
--- Teacher Dashboard: Student Performance Summary
-CREATE VIEW teacher_student_summary AS
-SELECT 
-    u.id as student_id,
-    u.first_name,
-    u.last_name,
-    u.grade_level,
-    s.subject_name,
-    COUNT(a.id) as total_assignments,
-    COUNT(asub.id) as submitted_assignments,
-    ROUND(AVG(g.total_score), 2) as average_grade,
-    COUNT(g.id) as total_exams_graded
-FROM users u
-LEFT JOIN user_subjects us ON u.id = us.user_id
-LEFT JOIN subjects s ON us.subject_id = s.id
-LEFT JOIN assignments a ON s.id = a.subject_id AND u.grade_level = a.grade_level
-LEFT JOIN assignment_submissions asub ON a.id = asub.assignment_id AND u.id = asub.student_id
-LEFT JOIN grades g ON u.id = g.student_id
-WHERE u.role = 'STUDENT'
-GROUP BY u.id, u.first_name, u.last_name, u.grade_level, s.subject_name;
-
--- Student Dashboard: Subject-wise Performance
-CREATE VIEW student_subject_dashboard AS
-SELECT 
-    u.id as student_id,
-    s.subject_name,
-    COUNT(DISTINCT a.id) as total_assignments,
-    COUNT(DISTINCT asub.id) as completed_assignments,
-    COUNT(DISTINCT CASE WHEN asub.id IS NULL THEN a.id END) as pending_assignments,
-    COUNT(DISTINCT g.id) as total_grades,
-    ROUND(AVG(g.total_score), 2) as average_score,
-    COUNT(DISTINCT CASE WHEN e.exam_date > CURRENT_DATE THEN e.id END) as upcoming_exams
-FROM users u
-JOIN user_subjects us ON u.id = us.user_id
-JOIN subjects s ON us.subject_id = s.id
-LEFT JOIN assignments a ON s.id = a.subject_id AND u.grade_level = a.grade_level
-LEFT JOIN assignment_submissions asub ON a.id = asub.assignment_id AND u.id = asub.student_id
-LEFT JOIN exams e ON s.id = e.subject_id AND u.grade_level = e.grade_level
-LEFT JOIN grades g ON e.id = g.exam_id AND u.id = g.student_id
-WHERE u.role = 'STUDENT'
-GROUP BY u.id, s.subject_name;
-```### 2.6 Dashboard & Analytics
-**Must-Have**
-
-**Teacher Dashboard:**
-- **Grade-Level Overview:** As a teacher, I want to select a grade level and see all students enrolled in my subject for that grade
-- **Student Performance Tracking:** As a teacher, I want to drill down to individual students and see their complete performance summary
-- **Assignment Status Monitoring:** As a teacher, I want to see which students have submitted assignments and which are pending
-- **Quick Stats:** As a teacher, I want to see summary statistics (submission rates, average grades, upcoming deadlines)
-
-**Student Dashboard:**
-- **Subject-Based Tabs:** As a student, I want separate tabs for each of my enrolled subjects (Math, Physics, Chemistry)
-- **Grade Tracking:** As a student, I want to see all my exam marks organized by subject
-- **Assignment Status:** As a student, I want to see completed and pending assignments for each subject
-- **Performance Overview:** As a student, I want to track my progress and upcoming deadlines# Shiksha Tuition Center App - Product Requirements Document (PRD)
+# Shiksha Tuition Center App - Product Requirements Document (PRD)
 
 ## Executive Summary
 
@@ -125,6 +68,21 @@ Shiksha tuition center currently lacks a centralized digital platform for:
 - **Grade Visibility:** As a student, I want to view my exam results
 - **Grade Notifications:** As a student, I want email notifications when grades are posted
 
+### 2.6 Dashboard & Analytics
+**Must-Have**
+
+**Teacher Dashboard:**
+- **Grade-Level Overview:** As a teacher, I want to select a grade level and see all students enrolled in my subject for that grade
+- **Student Performance Tracking:** As a teacher, I want to drill down to individual students and see their complete performance summary
+- **Assignment Status Monitoring:** As a teacher, I want to see which students have submitted assignments and which are pending
+- **Quick Stats:** As a teacher, I want to see summary statistics (submission rates, average grades, upcoming deadlines)
+
+**Student Dashboard:**
+- **Subject-Based Tabs:** As a student, I want separate tabs for each of my enrolled subjects (Math, Physics, Chemistry)
+- **Grade Tracking:** As a student, I want to see all my exam marks organized by subject
+- **Assignment Status:** As a student, I want to see completed and pending assignments for each subject
+- **Performance Overview:** As a student, I want to track my progress and upcoming deadlines
+
 ---
 
 ## 3. Technical Requirements
@@ -173,23 +131,225 @@ Given the file upload functionality, security is critical:
 - **File Size Limits:** Maximum 10MB per file upload
 - **HTTPS Only:** All communications encrypted in transit via CloudFront
 
-### 3.3 Database Schema
+### 3.3 Database Schema & Architecture
 
-The PostgreSQL database will maintain the following core tables:
+**Database Strategy:** **Single PostgreSQL database** with **logical module separation** via table naming and Spring Modulith boundaries.
 
-**Authentication & User Management:**
-- **`users`** - User information and roles (id, email, password_hash, first_name, last_name, phone, role ENUM('TEACHER', 'STUDENT'), created_at, updated_at, is_active)
-- **`user_subjects`** - Students enrolled in subjects, Teachers assigned to subjects (user_id, subject_id, grade_level)
+**Why Single Database for Shiksha:**
+- Small scale (43 users) doesn't require microservices complexity
+- Maintains data consistency with ACID transactions
+- Simplified backup, monitoring, and maintenance
+- Cost-effective (one RDS instance vs multiple)
+- Easier cross-module queries (student grades across subjects)
 
-**Core Application Data:**
-- **`subjects`** - Available subjects (id, subject_name: 'Math', 'Physics', 'Chemistry')
-- **`assignments`** - Teacher-created assignments (id, teacher_id, subject_id, grade_level, title, description, file_path, due_date, created_at)
-- **`assignment_submissions`** - Student completed assignment uploads (id, assignment_id, student_id, file_path, submitted_at, status)
-- **`exams`** - Scheduled examinations (id, teacher_id, subject_id, grade_level, exam_date, duration, topics, instructions, created_at)
-- **`grades`** - Exam results (id, exam_id, student_id, total_score, max_score, graded_at, graded_by)
+#### 3.3.1 Authentication Module Tables
+```sql
+-- User management and authentication
+CREATE TABLE users (
+    id BIGSERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    phone VARCHAR(20),
+    role user_role_enum NOT NULL, -- 'TEACHER' or 'STUDENT'
+    grade_level INTEGER, -- For students (9,10,11,12), NULL for teachers
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE
+);
 
-**Notification Tracking:**
-- **`email_notifications`** - Notification history (id, recipient_email, subject, content, sent_at, status, notification_type)
+-- Subject enrollment and teaching assignments
+CREATE TABLE user_subjects (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(id),
+    subject_id BIGINT NOT NULL REFERENCES subjects(id),
+    grade_level INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, subject_id, grade_level)
+);
+
+-- Create ENUM type for roles
+CREATE TYPE user_role_enum AS ENUM ('TEACHER', 'STUDENT');
+```
+
+#### 3.3.2 Academic Module Tables
+```sql
+-- Available subjects
+CREATE TABLE subjects (
+    id BIGSERIAL PRIMARY KEY,
+    subject_name VARCHAR(50) UNIQUE NOT NULL, -- 'Math', 'Physics', 'Chemistry'
+    description TEXT,
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+-- Teacher-created assignments (questions/problems)
+CREATE TABLE assignments (
+    id BIGSERIAL PRIMARY KEY,
+    teacher_id BIGINT NOT NULL REFERENCES users(id),
+    subject_id BIGINT NOT NULL REFERENCES subjects(id),
+    grade_level INTEGER NOT NULL CHECK (grade_level BETWEEN 9 AND 12),
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    file_path VARCHAR(500) NOT NULL, -- S3 object key
+    file_name VARCHAR(255) NOT NULL,
+    due_date DATE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+-- Student completed assignment submissions
+CREATE TABLE assignment_submissions (
+    id BIGSERIAL PRIMARY KEY,
+    assignment_id BIGINT NOT NULL REFERENCES assignments(id),
+    student_id BIGINT NOT NULL REFERENCES users(id),
+    file_path VARCHAR(500) NOT NULL, -- S3 object key
+    file_name VARCHAR(255) NOT NULL,
+    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status submission_status_enum DEFAULT 'SUBMITTED',
+    teacher_feedback TEXT,
+    UNIQUE(assignment_id, student_id)
+);
+
+-- Create ENUM for submission status
+CREATE TYPE submission_status_enum AS ENUM ('SUBMITTED', 'REVIEWED', 'GRADED');
+```
+
+#### 3.3.3 Examination Module Tables
+```sql
+-- Scheduled examinations
+CREATE TABLE exams (
+    id BIGSERIAL PRIMARY KEY,
+    teacher_id BIGINT NOT NULL REFERENCES users(id),
+    subject_id BIGINT NOT NULL REFERENCES subjects(id),
+    grade_level INTEGER NOT NULL CHECK (grade_level BETWEEN 9 AND 12),
+    exam_title VARCHAR(255) NOT NULL,
+    exam_date DATE NOT NULL,
+    exam_time TIME NOT NULL,
+    duration_minutes INTEGER NOT NULL,
+    topics TEXT NOT NULL,
+    special_instructions TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+-- Exam results/grades
+CREATE TABLE grades (
+    id BIGSERIAL PRIMARY KEY,
+    exam_id BIGINT NOT NULL REFERENCES exams(id),
+    student_id BIGINT NOT NULL REFERENCES users(id),
+    total_score DECIMAL(5,2) NOT NULL,
+    max_score DECIMAL(5,2) NOT NULL,
+    graded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    graded_by BIGINT NOT NULL REFERENCES users(id), -- teacher who graded
+    comments TEXT,
+    UNIQUE(exam_id, student_id)
+);
+```
+
+#### 3.3.4 Notification Module Tables
+```sql
+-- Email notification tracking
+CREATE TABLE email_notifications (
+    id BIGSERIAL PRIMARY KEY,
+    recipient_email VARCHAR(255) NOT NULL,
+    recipient_id BIGINT REFERENCES users(id),
+    subject VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    notification_type notification_type_enum NOT NULL,
+    related_entity_id BIGINT, -- ID of assignment, exam, or grade
+    related_entity_type VARCHAR(50), -- 'ASSIGNMENT', 'EXAM', 'GRADE'
+    sent_at TIMESTAMP,
+    status notification_status_enum DEFAULT 'PENDING',
+    error_message TEXT,
+    retry_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create ENUMs for notifications
+CREATE TYPE notification_type_enum AS ENUM (
+    'ASSIGNMENT_POSTED', 
+    'ASSIGNMENT_SUBMITTED', 
+    'EXAM_SCHEDULED', 
+    'GRADE_POSTED',
+    'SYSTEM_NOTIFICATION'
+);
+
+CREATE TYPE notification_status_enum AS ENUM ('PENDING', 'SENT', 'FAILED', 'RETRYING');
+```
+
+#### 3.3.5 Database Indexes for Performance
+```sql
+-- Authentication indexes
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_role ON users(role);
+CREATE INDEX idx_user_subjects_user_id ON user_subjects(user_id);
+CREATE INDEX idx_user_subjects_subject_grade ON user_subjects(subject_id, grade_level);
+
+-- Assignment indexes
+CREATE INDEX idx_assignments_teacher_subject ON assignments(teacher_id, subject_id);
+CREATE INDEX idx_assignments_grade_subject ON assignments(grade_level, subject_id);
+CREATE INDEX idx_assignment_submissions_assignment ON assignment_submissions(assignment_id);
+CREATE INDEX idx_assignment_submissions_student ON assignment_submissions(student_id);
+
+-- Exam and grade indexes
+CREATE INDEX idx_exams_teacher_subject ON exams(teacher_id, subject_id);
+CREATE INDEX idx_exams_date_grade ON exams(exam_date, grade_level);
+CREATE INDEX idx_grades_exam_student ON grades(exam_id, student_id);
+
+-- Notification indexes
+CREATE INDEX idx_notifications_recipient ON email_notifications(recipient_email);
+CREATE INDEX idx_notifications_status ON email_notifications(status);
+CREATE INDEX idx_notifications_type ON email_notifications(notification_type);
+```
+
+#### 3.3.6 Dashboard Analytics Views (Database Views/Queries)
+
+```sql
+-- Teacher Dashboard: Student Performance Summary
+CREATE VIEW teacher_student_summary AS
+SELECT 
+    u.id as student_id,
+    u.first_name,
+    u.last_name,
+    u.grade_level,
+    s.subject_name,
+    COUNT(a.id) as total_assignments,
+    COUNT(asub.id) as submitted_assignments,
+    ROUND(AVG(g.total_score), 2) as average_grade,
+    COUNT(g.id) as total_exams_graded
+FROM users u
+LEFT JOIN user_subjects us ON u.id = us.user_id
+LEFT JOIN subjects s ON us.subject_id = s.id
+LEFT JOIN assignments a ON s.id = a.subject_id AND u.grade_level = a.grade_level
+LEFT JOIN assignment_submissions asub ON a.id = asub.assignment_id AND u.id = asub.student_id
+LEFT JOIN grades g ON u.id = g.student_id
+WHERE u.role = 'STUDENT'
+GROUP BY u.id, u.first_name, u.last_name, u.grade_level, s.subject_name;
+
+-- Student Dashboard: Subject-wise Performance
+CREATE VIEW student_subject_dashboard AS
+SELECT 
+    u.id as student_id,
+    s.subject_name,
+    COUNT(DISTINCT a.id) as total_assignments,
+    COUNT(DISTINCT asub.id) as completed_assignments,
+    COUNT(DISTINCT CASE WHEN asub.id IS NULL THEN a.id END) as pending_assignments,
+    COUNT(DISTINCT g.id) as total_grades,
+    ROUND(AVG(g.total_score), 2) as average_score,
+    COUNT(DISTINCT CASE WHEN e.exam_date > CURRENT_DATE THEN e.id END) as upcoming_exams
+FROM users u
+JOIN user_subjects us ON u.id = us.user_id
+JOIN subjects s ON us.subject_id = s.id
+LEFT JOIN assignments a ON s.id = a.subject_id AND u.grade_level = a.grade_level
+LEFT JOIN assignment_submissions asub ON a.id = asub.assignment_id AND u.id = asub.student_id
+LEFT JOIN exams e ON s.id = e.subject_id AND u.grade_level = e.grade_level
+LEFT JOIN grades g ON e.id = g.exam_id AND u.id = g.student_id
+WHERE u.role = 'STUDENT'
+GROUP BY u.id, s.subject_name;
+```
 
 ### 3.4 Security Implementation Details
 
@@ -292,7 +452,7 @@ The PostgreSQL database will maintain the following core tables:
 - Grades posted (exam name, score, total marks)
 
 *For Teachers:*
-- Student assessment submitted (student name, assignment title, submission time)
+- Student assignment submitted (student name, assignment title, submission time)
 - System updates and maintenance notifications
 
 ### 5.3 File Management
@@ -300,7 +460,7 @@ The PostgreSQL database will maintain the following core tables:
 - **Supported Format:** PDF only
 - **Storage:** AWS S3 with secure access controls
 - **Naming Convention:** Auto-generated secure filenames
-- **Storage Organization:** Organized by subject → grade → type (assignment/assessment)
+- **Storage Organization:** Organized by subject → grade → type (assignment/submission)
 - **Access Control:** Students can only access their grade-level content
 
 ---
@@ -350,7 +510,7 @@ AWS RDS (PostgreSQL)
 **Phase 2 (Enhancement - 3 weeks):**
 - Develop assignment management APIs and React components
 - Implement secure PDF upload to S3 with proper access controls
-- Build student assessment submission workflow
+- Build student assignment submission workflow
 - Create basic grade management functionality with SES integration
 
 **Phase 3 (Polish - 2 weeks):**
@@ -389,7 +549,7 @@ AWS RDS (PostgreSQL)
 ### Week 3-4: Backend Development
 - Develop Spring Boot application with Spring Modulith
 - Implement authentication APIs with Spring Security
-- Create assignment, assessment, and exam management modules
+- Create assignment, assignment submission, and exam management modules
 - Set up email notification service with SES integration
 
 ### Week 5-6: Frontend Development
@@ -419,7 +579,7 @@ AWS RDS (PostgreSQL)
 **User Engagement:**
 - Daily active users (target: 80% of total users)
 - Assignment download rate (target: 95% within 24 hours)
-- Assessment submission rate (target: 90% on-time submissions)
+- Assignment submission rate (target: 90% on-time submissions)
 
 **System Performance:**
 - Page load times (target: <3 seconds via CloudFront)
@@ -446,7 +606,7 @@ AWS RDS (PostgreSQL)
 ### 9.1 Priority Enhancements
 
 **AI-Powered Student Support Chatbot**
-- **Purpose:** Automated responses to student queries about marks, assessment schedules, and exam dates
+- **Purpose:** Automated responses to student queries about marks, assignment schedules, and exam dates
 - **Technical Implementation:** 
   - Integration with **MCP (Model Context Protocol) database server** for real-time data access
   - **Large Language Model** (Claude, GPT-4, or local model) for natural language processing
@@ -456,7 +616,7 @@ AWS RDS (PostgreSQL)
   - Query marks: "What's my Physics exam score?"
   - Check schedules: "When is my next Math assignment due?"
   - Exam information: "What topics are covered in tomorrow's Chemistry exam?"
-  - Assessment status: "Have I submitted my Physics assessment?"
+  - Assignment status: "Have I submitted my Physics assignment?"
 - **Security:** Student authentication required, access only to own data
 - **Fallback:** Direct teacher contact for queries the chatbot cannot handle
 
