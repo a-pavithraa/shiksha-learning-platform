@@ -1,4 +1,61 @@
-# Shiksha Tuition Center App - Product Requirements Document (PRD)
+#### 3.3.6 Dashboard Analytics Views (Database Views/Queries)
+
+```sql
+-- Teacher Dashboard: Student Performance Summary
+CREATE VIEW teacher_student_summary AS
+SELECT 
+    u.id as student_id,
+    u.first_name,
+    u.last_name,
+    u.grade_level,
+    s.subject_name,
+    COUNT(a.id) as total_assignments,
+    COUNT(asub.id) as submitted_assignments,
+    ROUND(AVG(g.total_score), 2) as average_grade,
+    COUNT(g.id) as total_exams_graded
+FROM users u
+LEFT JOIN user_subjects us ON u.id = us.user_id
+LEFT JOIN subjects s ON us.subject_id = s.id
+LEFT JOIN assignments a ON s.id = a.subject_id AND u.grade_level = a.grade_level
+LEFT JOIN assignment_submissions asub ON a.id = asub.assignment_id AND u.id = asub.student_id
+LEFT JOIN grades g ON u.id = g.student_id
+WHERE u.role = 'STUDENT'
+GROUP BY u.id, u.first_name, u.last_name, u.grade_level, s.subject_name;
+
+-- Student Dashboard: Subject-wise Performance
+CREATE VIEW student_subject_dashboard AS
+SELECT 
+    u.id as student_id,
+    s.subject_name,
+    COUNT(DISTINCT a.id) as total_assignments,
+    COUNT(DISTINCT asub.id) as completed_assignments,
+    COUNT(DISTINCT CASE WHEN asub.id IS NULL THEN a.id END) as pending_assignments,
+    COUNT(DISTINCT g.id) as total_grades,
+    ROUND(AVG(g.total_score), 2) as average_score,
+    COUNT(DISTINCT CASE WHEN e.exam_date > CURRENT_DATE THEN e.id END) as upcoming_exams
+FROM users u
+JOIN user_subjects us ON u.id = us.user_id
+JOIN subjects s ON us.subject_id = s.id
+LEFT JOIN assignments a ON s.id = a.subject_id AND u.grade_level = a.grade_level
+LEFT JOIN assignment_submissions asub ON a.id = asub.assignment_id AND u.id = asub.student_id
+LEFT JOIN exams e ON s.id = e.subject_id AND u.grade_level = e.grade_level
+LEFT JOIN grades g ON e.id = g.exam_id AND u.id = g.student_id
+WHERE u.role = 'STUDENT'
+GROUP BY u.id, s.subject_name;
+```### 2.6 Dashboard & Analytics
+**Must-Have**
+
+**Teacher Dashboard:**
+- **Grade-Level Overview:** As a teacher, I want to select a grade level and see all students enrolled in my subject for that grade
+- **Student Performance Tracking:** As a teacher, I want to drill down to individual students and see their complete performance summary
+- **Assignment Status Monitoring:** As a teacher, I want to see which students have submitted assignments and which are pending
+- **Quick Stats:** As a teacher, I want to see summary statistics (submission rates, average grades, upcoming deadlines)
+
+**Student Dashboard:**
+- **Subject-Based Tabs:** As a student, I want separate tabs for each of my enrolled subjects (Math, Physics, Chemistry)
+- **Grade Tracking:** As a student, I want to see all my exam marks organized by subject
+- **Assignment Status:** As a student, I want to see completed and pending assignments for each subject
+- **Performance Overview:** As a student, I want to track my progress and upcoming deadlines# Shiksha Tuition Center App - Product Requirements Document (PRD)
 
 ## Executive Summary
 
@@ -163,22 +220,40 @@ The PostgreSQL database will maintain the following core tables:
 ### 4.1 Core User Flows
 
 **Teacher Workflow:**
-1. Login → Dashboard → Select Subject/Grade → Upload Assignment → Students notified
-2. Login → Exam Schedule → Set details → Students notified
-3. Login → Grade Entry → Select exam → Enter scores → Students notified
+1. Login → Dashboard → Select Grade Level → View Student Grid
+2. Click Student → View Individual Performance (all subjects) → See assignments submitted/pending
+3. Upload Assignment → Select Grade/Subject → Students notified
+4. Grade Entry → Select Exam → Enter Scores → Students notified
 
 **Student Workflow:**
-1. Login → Dashboard → View assignments by subject
-2. Download assignment → Complete → Upload completed assignment → Teacher notified
-3. View exam schedule → Prepare → Check grades after completion
+1. Login → Dashboard → Subject Tabs (Math/Physics/Chemistry)
+2. Select Subject Tab → View Grades + Assignment Status + Upcoming Exams
+3. Download Assignment → Complete → Upload → Teacher notified
+4. Check Grade Updates → Review Performance Trends
 
 ### 4.2 Interface Requirements
 
-- **Responsive Design:** Mobile-first approach for student accessibility
+**Teacher Dashboard Design:**
+- **Grade Selector:** Dropdown to filter by grade level (9, 10, 11, 12)
+- **Student Grid View:** Cards/table showing all students with quick stats (submission rate, average grade)
+- **Student Detail View:** Drill-down page showing individual student's complete performance
+- **Performance Indicators:** Visual status indicators (submitted/pending, grade trends)
+- **Quick Actions:** Direct access to grade entry, assignment creation
+
+**Student Dashboard Design:**
+- **Subject Tabs:** Horizontal tabs for each enrolled subject (Math, Physics, Chemistry)
+- **Per-Subject Content:**
+  - **Grades Section:** List of exam scores with dates and performance trends
+  - **Assignments Section:** Completed vs pending assignments with due dates
+  - **Upcoming Exams:** Schedule view with preparation countdown
+- **Progress Indicators:** Visual representation of completion status
+- **Quick Upload:** Easy access to assignment submission interface
+
+**Responsive Design:**
+- **Mobile-First:** Tab navigation optimized for phone screens
 - **Grade-Level Organization:** Clear subject-based navigation
 - **File Upload UX:** Drag-and-drop interface with progress indicators
 - **Notification Center:** In-app notification history alongside email notifications
-- **Dashboard:** Quick overview of pending assignments, upcoming exams, recent grades
 
 ### 4.3 Accessibility Considerations
 
@@ -199,10 +274,13 @@ The PostgreSQL database will maintain the following core tables:
 | Download Assignments | ✅ | ✅ |
 | Upload Completed Assignments | ❌ | ✅ |
 | Download Student Submissions | ✅ | ❌ |
+| View Grade-Level Student Grid | ✅ | ❌ |
+| View Individual Student Performance | ✅ | ❌ |
+| View Subject-wise Dashboard Tabs | ❌ | ✅ |
 | Schedule Exams | ✅ | ❌ |
 | View Exam Schedule | ✅ | ✅ |
 | Enter Grades | ✅ | ❌ |
-| View Own Grades | ❌ | ✅ |
+| View Own Grades by Subject | ❌ | ✅ |
 
 ### 5.2 Notification System
 
