@@ -4,7 +4,7 @@
 
 **Product Vision:** Create a streamlined web application for Shiksha tuition center that enhances communication between teachers and students through efficient assignment sharing, exam scheduling, and assessment management.
 
-**Bottom Line Up Front:** A responsive web application that allows 3 teachers to share assignments and schedule exams for 40 students across Math, Physics, and Chemistry subjects (grades 9-12), with automated email notifications and secure PDF file handling.
+**Bottom Line Up Front:** A responsive web application that allows teachers to share assignments and schedule exams for students across Math, Physics, and Chemistry subjects (grades 9-12), with automated email notifications and secure PDF file handling.
 
 ---
 
