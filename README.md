@@ -260,7 +260,7 @@ src/
 
 ## 📄 Documentation
 
-- [Product Requirements Document (PRD)](./prd.md) - Complete project specifications
+- [Product Requirements Document (PRD)](./PRD.md) - Complete project specifications
 
 
 ## 🐛 Issues & Support
@@ -283,14 +283,9 @@ src/
 - **Week 7-8:** Integration testing and security validation
 - **Week 9:** Production deployment and user training
 
-## 🏷️ License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## 👥 References
 
-## 👥 Team
-
-- **Product Owner:** Shiksha Tuition Center
-- **Development Team:** [Add team member names]
 - **Architecture Reference:** Based on [Spring Modulith Workshop](https://github.com/sivaprasadreddy/spring-modulith-workshop)
 
 ---
