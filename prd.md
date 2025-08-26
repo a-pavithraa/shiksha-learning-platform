@@ -21,8 +21,8 @@ Shiksha tuition center currently lacks a centralized digital platform for:
 - Centralized grade management and distribution
 
 ### Target Users
-- **Primary:** 3 subject teachers (Math, Physics, Chemistry)
-- **Primary:** 40 students (grades 9-12)
+- **Primary:** Subject teachers (Math, Physics, Chemistry)
+- **Primary:** Students (grades 9-12)
 - **Secondary:** Potential future expansion to more teachers/students
 
 ### Success Metrics
@@ -136,7 +136,7 @@ Given the file upload functionality, security is critical:
 **Database Strategy:** **Single PostgreSQL database** with **logical module separation** via table naming and Spring Modulith boundaries.
 
 **Why Single Database for Shiksha:**
-- Small scale (43 users) doesn't require microservices complexity
+- Small to medium scale tuition center doesn't require microservices complexity
 - Maintains data consistency with ACID transactions
 - Simplified backup, monitoring, and maintenance
 - Cost-effective (one RDS instance vs multiple)
@@ -368,7 +368,7 @@ GROUP BY u.id, s.subject_name;
 ### 3.5 Performance Requirements
 
 - **Load Time:** Pages load within 3 seconds on 3G connections (CloudFront optimization)
-- **Concurrent Users:** Support 50 simultaneous users (peak usage scenario)
+- **Concurrent Users:** Support adequate simultaneous users for peak usage scenarios
 - **File Upload:** Support multiple 10MB PDF uploads simultaneously to S3
 - **Email Delivery:** SES notification delivery within 200ms of trigger event
 - **Global Performance:** CloudFront CDN ensures fast loading worldwide
@@ -603,29 +603,59 @@ AWS RDS (PostgreSQL)
 
 ## 9. Future Enhancements (Post-Launch)
 
-### 9.1 Priority Enhancements
+### 9.1 Immediate Next Phase Enhancements
 
-**AI-Powered Student Support Chatbot**
-- **Purpose:** Automated responses to student queries about marks, assignment schedules, and exam dates
+**In-App Messaging System**
+- **Purpose:** Direct teacher-student communication within the platform
+- **Features:** Real-time chat, message history, file attachments, read receipts
+- **Benefits:** Maintains personal connection while being digital and trackable
+- **Implementation:** WebSocket integration with Spring Boot, message persistence in database
+
+**Smart Dashboard Enhancements**
+- **Proactive Information Display:** Show answers before students ask questions
+- **Real-time Status Indicators:** Assignment due soon warnings, exam countdown timers
+- **Progress Visualization:** Charts showing grade trends, completion rates
+- **Quick Actions:** One-click access to frequently needed functions
+
+**Enhanced Notification System**
+- **Proactive Notifications:** "Physics assignment due tomorrow" reminders
+- **Smart Timing:** Send reminders based on student behavior patterns
+- **Notification Preferences:** Students can customize notification frequency and types
+- **Digest Emails:** Weekly summary of upcoming deadlines and recent grades
+
+### 9.2 Secondary Enhancements
+
+**Comprehensive FAQ System**
+- **Self-Service Help:** Common questions answered in searchable knowledge base
+- **Contextual Help:** Help tooltips and guides within each dashboard section
+- **Video Tutorials:** Brief explainer videos for common tasks
+
+**Advanced Dashboard Analytics**
+- **Teacher Insights:** Class performance trends, submission pattern analysis
+- **Student Progress Tracking:** Individual performance trends across subjects
+- **Parent-Friendly Reports:** Monthly progress summaries (if parent portal added)
+
+### 9.3 Long-term Future Enhancements
+
+**AI-Powered Student Support Chatbot** *(Consider after core platform success)*
+- **Purpose:** Automated responses to basic student queries about marks and schedules
 - **Technical Implementation:** 
   - Integration with **MCP (Model Context Protocol) database server** for real-time data access
   - **Large Language Model** (Claude, GPT-4, or local model) for natural language processing
   - **Spring Boot integration** via REST API endpoints for chatbot backend services
-  - **Database queries** through MCP server to fetch student-specific information
 - **Key Features:**
   - Query marks: "What's my Physics exam score?"
   - Check schedules: "When is my next Math assignment due?"
   - Exam information: "What topics are covered in tomorrow's Chemistry exam?"
   - Assignment status: "Have I submitted my Physics assignment?"
+- **Important Considerations:** Only implement after validating that human interaction isn't being diminished
 - **Security:** Student authentication required, access only to own data
-- **Fallback:** Direct teacher contact for queries the chatbot cannot handle
+- **Fallback:** Always direct to teachers for educational discussions
 
-### 9.2 Additional Future Features
-
-- **Analytics Dashboard:** Track student progress and engagement metrics
-- **Advanced Grading:** Support for rubrics and detailed feedback comments
-- **Parent Portal:** Optional parent access to student progress and notifications
+**Additional Long-term Features**
 - **Mobile App:** Native iOS/Android apps for enhanced mobile experience
+- **Parent Portal:** Optional parent access to student progress and notifications
+- **Advanced Grading:** Support for rubrics and detailed feedback comments
 - **Integration:** Connect with existing school management systems
 - **Offline Support:** Download assignments for offline viewing
 - **Advanced Search:** Full-text search across assignments and announcements
