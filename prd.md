@@ -673,6 +673,19 @@ AWS RDS (PostgreSQL)
 - User training materials for teachers and students
 - MCP server integration guide (for future chatbot enhancement)
 
+### 10.1 Development Resources & References
+
+**Spring Modulith Implementation:**
+- **Workshop Reference:** [Spring Modulith Workshop by Sivaprasad](https://github.com/sivaprasadreddy/spring-modulith-workshop)
+- **Official Documentation:** [Spring Modulith Reference Guide](https://docs.spring.io/spring-modulith/reference/)
+- **Module Structure Examples:** Use workshop examples for implementing User, Assignment, Exam, and Notification modules
+
+**Recommended Learning Path for Developers:**
+1. Complete Spring Modulith workshop exercises
+2. Study modular architecture patterns from the workshop repository
+3. Apply learned patterns to Shiksha's specific modules
+4. Implement event-driven communication between modules as demonstrated
+
 ---
 
 ## 11. Cost Estimation
