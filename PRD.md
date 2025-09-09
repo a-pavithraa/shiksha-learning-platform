@@ -100,7 +100,7 @@ Based on current best practices for educational platforms and your requirements:
 
 **Backend:**
 - **Java 21** with **Spring Boot 3.x**
-- **Spring Modulith** for modular architecture and better domain separation
+- **Spring Modulith** for modular architecture with simplified package structure
 - **Spring Security** with JWT tokens for authentication and authorization
 - **Spring Data JPA** for database operations
 - **Spring Web** for REST API development
@@ -110,11 +110,10 @@ Based on current best practices for educational platforms and your requirements:
 
 **Database & Storage:**
 - **PostgreSQL** for structured data (users, assignments, grades, schedules)
-- **AWS S3** for secure PDF file storage and React app static files
-- **AWS CloudFront** for global content delivery and frontend hosting
+- **AWS S3** for secure PDF file storage
+- **AWS CloudFront** for global content delivery (optional)
 
 **Infrastructure:**
-- **AWS S3 + CloudFront** for React frontend hosting with global CDN
 - **AWS EC2** or **AWS Elastic Beanstalk** for Spring Boot application hosting
 - **AWS SQS** for reliable notification message queuing
 - **Amazon SES** for email notifications
