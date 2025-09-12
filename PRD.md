@@ -114,10 +114,10 @@ Based on current best practices for educational platforms and your requirements:
 - **AWS CloudFront** for global content delivery (optional)
 
 **Infrastructure:**
-- **AWS EC2** or **AWS Elastic Beanstalk** for Spring Boot application hosting
+
 - **AWS SQS** for reliable notification message queuing
 - **Amazon SES** for email notifications
-- **AWS RDS PostgreSQL** for managed database hosting
+
 
 ### 3.2 Security Requirements
 

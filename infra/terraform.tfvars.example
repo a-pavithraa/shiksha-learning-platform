@@ -1,0 +1,71 @@
+# Shiksha LMS Terraform Variables Example
+# Copy this file to terraform.tfvars and update with your actual values
+
+# =====================================================
+# PROJECT CONFIGURATION
+# =====================================================
+
+project_name = "shiksha-lms"
+environment  = "dev"  # dev, staging, prod
+aws_region   = "us-east-1"
+
+# =====================================================
+# S3 CONFIGURATION
+# =====================================================
+
+# Leave s3_bucket_name as null to auto-generate a unique name
+# Or specify a custom name (must be globally unique)
+s3_bucket_name = null
+
+# Enable versioning for file history (recommended for production)
+s3_versioning_enabled = true
+
+# =====================================================
+# SES CONFIGURATION
+# =====================================================
+
+# Required: From email address for notifications
+# This email must be verified in SES (you'll verify this after deployment)
+# Use Gmail, Yahoo, or any personal email for testing
+ses_from_email = "your-email@gmail.com"
+
+# List of email addresses to verify for SES (for testing)
+# These emails will be able to receive notifications
+verified_email_addresses = [
+  "teacher@example.com",
+  "student@example.com"
+]
+
+# =====================================================
+# SQS CONFIGURATION
+# =====================================================
+
+# How long (in seconds) a message is hidden after being received
+sqs_visibility_timeout = 300
+
+# Number of times a message can be received before moving to DLQ
+sqs_max_receive_count = 3
+
+# =====================================================
+# RESOURCE TAGS
+# =====================================================
+
+tags = {
+  Project     = "shiksha-lms"
+  ManagedBy   = "terraform"
+  Environment = "dev"
+  Owner       = "Shiksha Tuition Center"
+  Purpose     = "Learning Management System"
+}
+
+# =====================================================
+# NOTES FOR DEPLOYMENT
+# =====================================================
+
+# Before running terraform apply:
+# 1. Replace "your-email@gmail.com" with your actual email address
+# 2. Add teacher/student emails to verified_email_addresses for testing
+# 3. Update aws_region if needed (us-east-1 is cheapest for SES)
+# 4. After deployment, verify all email addresses in AWS SES console
+# 5. SES starts in sandbox mode - you can only send to verified addresses
+# 6. Request production access from AWS to send to any email address
