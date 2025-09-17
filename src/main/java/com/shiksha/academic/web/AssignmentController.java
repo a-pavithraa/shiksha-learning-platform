@@ -30,8 +30,9 @@ public class AssignmentController {
     public ResponseEntity<?> createAssignment(
             @Valid @ModelAttribute CreateAssignmentRequest request,
             @RequestParam("file") MultipartFile file) {
-        
+
         try {
+            System.out.println("Inside createAssignment() with request: " + request + " and file: " + file.getOriginalFilename() + " of size: " + file.getSize() + " bytes");
             // Get current user ID from security context
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             Long teacherId = extractUserIdFromAuthentication(authentication);
@@ -56,16 +57,19 @@ public class AssignmentController {
             ));
             
         } catch (IOException e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of(
                     "status", "error",
                     "message", "File upload failed: " + e.getMessage()
             ));
         } catch (IllegalArgumentException e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of(
                     "status", "error",
                     "message", e.getMessage()
             ));
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                     "status", "error",
                     "message", "An unexpected error occurred"

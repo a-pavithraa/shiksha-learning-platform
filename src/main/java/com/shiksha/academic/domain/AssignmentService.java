@@ -10,6 +10,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,7 +33,7 @@ public class AssignmentService {
     }
 
     public Assignment createAssignment(Long teacherId, Long subjectId, Integer gradeLevel,
-                                     String title, String description, LocalDate dueDate,
+                                     String title, String description, String dueDate,
                                      MultipartFile file) throws IOException {
         
         // Validate input
@@ -39,11 +41,12 @@ public class AssignmentService {
         
         // Upload file to S3
         String filePath = s3FileService.uploadFile(file, "assignments");
+        LocalDate dueDateObj = dueDate != null ? parseToLocalDate(dueDate) : null;
         
         // Create assignment entity
         Assignment assignment = new Assignment(
                 teacherId, subjectId, gradeLevel, title, description,
-                filePath, file.getOriginalFilename(), dueDate
+                filePath, file.getOriginalFilename(), dueDateObj
         );
         
         // Save to database
@@ -117,6 +120,14 @@ public class AssignmentService {
         
         // Optionally delete file from S3
         // s3FileService.deleteFile(assignment.getFilePath());
+    }
+
+    private LocalDate parseToLocalDate(String dateString) {
+        if (dateString.contains("T")) {
+            return LocalDateTime.parse(dateString).toLocalDate();
+        } else {
+            return LocalDate.parse(dateString);
+        }
     }
 
     private void validateAssignmentInput(Long teacherId, Long subjectId, Integer gradeLevel, 

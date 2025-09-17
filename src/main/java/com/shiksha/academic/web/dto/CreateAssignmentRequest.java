@@ -21,12 +21,12 @@ public class CreateAssignmentRequest {
     @Size(max = 1000, message = "Description cannot exceed 1000 characters")
     private String description;
 
-    private LocalDate dueDate;
+    private String dueDate;
 
     // Constructors
     public CreateAssignmentRequest() {}
 
-    public CreateAssignmentRequest(Long subjectId, Integer gradeLevel, String title, String description, LocalDate dueDate) {
+    public CreateAssignmentRequest(Long subjectId, Integer gradeLevel, String title, String description, String dueDate) {
         this.subjectId = subjectId;
         this.gradeLevel = gradeLevel;
         this.title = title;
@@ -67,11 +67,11 @@ public class CreateAssignmentRequest {
         this.description = description;
     }
 
-    public LocalDate getDueDate() {
+    public String getDueDate() {
         return dueDate;
     }
 
-    public void setDueDate(LocalDate dueDate) {
+    public void setDueDate(String dueDate) {
         this.dueDate = dueDate;
     }
 }

@@ -1,0 +1,174 @@
+### Authentication Controller Endpoints
+
+## Register User (Admin/Teacher access only)
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "email": "student1@example.com",
+  "password": "password123",
+  "firstName": "John",
+  "lastName": "Doe",
+  "role": "STUDENT",
+  "gradeLevel": 10,
+  "phone": "+1234567890",
+  "subjectIds": [1, 2]
+}
+
+### Register Teacher
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "email": "teacher@example.com",
+  "password": "password123",
+  "firstName": "Jane",
+  "lastName": "Smith",
+  "role": "TEACHER",
+  "phone": "+1234567891"
+}
+
+### Register Admin
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "email": "admin@example.com",
+  "password": "password123",
+  "firstName": "Admin",
+  "lastName": "User",
+  "role": "ADMIN",
+  "phone": "+1234567892"
+}
+
+###
+
+## Login as Admin
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@shiksha.com",
+  "password": "admin"
+}
+
+> {%
+client.global.set("adminToken", response.body.data.token);
+client.log("Admin token saved: " + response.body.data.token);
+%}
+
+### Login as Teacher
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "teacher@example.com",
+  "password": "password123"
+}
+
+> {%
+client.global.set("teacherToken", response.body.data.token);
+client.log("Teacher token saved: " + response.body.data.token);
+%}
+
+###
+
+## Get User Profile (Admin)
+GET http://localhost:8080/api/auth/profile
+Authorization: Bearer {{adminToken}}
+
+### Get User Profile (Teacher)
+GET http://localhost:8080/api/auth/profile
+Authorization: Bearer {{teacherToken}}
+
+###
+
+## Update Profile (Teacher)
+PUT http://localhost:8080/api/auth/profile
+Content-Type: application/json
+Authorization: Bearer {{teacherToken}}
+
+{
+  "firstName": "John Updated",
+  "lastName": "Doe Updated",
+  "phone": "+1234567890"
+}
+
+###
+
+## Change Password (Teacher)
+PUT http://localhost:8080/api/auth/change-password
+Content-Type: application/json
+Authorization: Bearer {{teacherToken}}
+
+{
+  "currentPassword": "password123",
+  "newPassword": "newPassword123"
+}
+
+###
+
+## Logout (Teacher)
+POST http://localhost:8080/api/auth/logout
+Authorization: Bearer {{teacherToken}}
+
+###
+
+### Assignment Controller Endpoints
+
+## Create Assignment (Teacher)
+POST http://localhost:8080/api/assignments
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+Authorization: Bearer {{teacherToken}}
+
+--WebAppBoundary
+Content-Disposition: form-data; name="subjectId"
+
+1
+--WebAppBoundary
+Content-Disposition: form-data; name="gradeLevel"
+
+10
+--WebAppBoundary
+Content-Disposition: form-data; name="title"
+
+Math Assignment 1
+--WebAppBoundary
+Content-Disposition: form-data; name="description"
+
+Complete the algebra problems in chapter 5
+--WebAppBoundary
+Content-Disposition: form-data; name="dueDate"
+
+2024-12-31T23:59:59
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="55-4-3_Physics.pdf"
+Content-Type: application/pdf
+
+< /Users/pavithra/Downloads/55-4-3_Physics.pdf
+--WebAppBoundary--
+
+###
+
+## Get Assignment by ID
+GET http://localhost:8080/api/assignments/1
+Authorization: Bearer {{teacherToken}}
+
+###
+
+## Download Assignment
+GET http://localhost:8080/api/assignments/1/download
+Authorization: Bearer {{teacherToken}}
+
+###
+
+### Environment Variables
+# Create a file called http-client.env.json in the same directory with:
+# {
+#   "dev": {
+#     "token": "your-jwt-token-here"
+#   }
+# }
