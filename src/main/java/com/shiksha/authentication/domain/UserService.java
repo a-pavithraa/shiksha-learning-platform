@@ -1,5 +1,6 @@
 package com.shiksha.authentication.domain;
 
+import com.shiksha.authentication.domain.models.StudentDto;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -102,4 +103,52 @@ public class UserService implements UserDetailsService {
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
+
+    // Cross-module service methods for notification module
+    
+    /**
+     * Finds all students enrolled in a specific subject and grade level
+     * Used by notification module to send assignment notifications
+     */
+    public List<StudentDto> findStudentsBySubjectAndGrade(Long subjectId, Integer gradeLevel) {
+        List<User> users = userRepository.findStudentsBySubjectAndGrade(subjectId, gradeLevel);
+        return users.stream()
+                .map(this::mapUserToStudentDto)
+                .toList();
+    }
+
+    private StudentDto mapUserToStudentDto(User user) {
+        return new StudentDto(
+                user.getId(),
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getPhone(),
+                user.getRole(),
+                user.getGradeLevel(),
+                user.getIsActive()
+        );
+    }
+
+    /**
+     * Gets teacher information by ID for cross-module access
+     */
+    public Optional<User> findTeacherById(Long teacherId) {
+        return userRepository.findByIdAndRoleAndIsActive(teacherId, UserRole.TEACHER, true);
+    }
+
+    /**
+     * Gets student information by ID for cross-module access
+     */
+    public Optional<User> findStudentById(Long studentId) {
+        return userRepository.findByIdAndRoleAndIsActive(studentId, UserRole.STUDENT, true);
+    }
+
+    /**
+     * Gets user by ID regardless of role
+     */
+    public Optional<User> findById(Long userId) {
+        return userRepository.findByIdAndIsActive(userId, true);
+    }
+
 }
