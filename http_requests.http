@@ -27,7 +27,8 @@ Authorization: Bearer {{adminToken}}
   "firstName": "Jane",
   "lastName": "Smith",
   "role": "TEACHER",
-  "phone": "+1234567891"
+  "phone": "+1234567891",
+  "subjectIds": [1]
 }
 
 ### Register Admin

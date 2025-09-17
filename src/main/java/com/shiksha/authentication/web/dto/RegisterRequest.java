@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.List;
+
 public record RegisterRequest(
         @NotBlank(message = "Email is required")
         @Email(message = "Email should be valid")
@@ -29,6 +31,9 @@ public record RegisterRequest(
         @NotNull(message = "Role is required")
         UserRole role,
 
-        Integer gradeLevel
+        Integer gradeLevel,
+        
+        // Subject IDs for enrollment (optional - students enroll at their grade level, teachers enroll for all grades)
+        List<Long> subjectIds
 ) {
 }

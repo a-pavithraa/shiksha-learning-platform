@@ -1,7 +1,6 @@
 package com.shiksha.authentication.web;
 
 import com.shiksha.authentication.domain.User;
-import com.shiksha.authentication.domain.UserRole;
 import com.shiksha.authentication.domain.UserService;
 import com.shiksha.authentication.security.JwtTokenProvider;
 import com.shiksha.authentication.web.dto.*;
@@ -40,29 +39,8 @@ AuthController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
     public ResponseEntity<ApiResponse<LoginResponse.UserResponse>> register(@Valid @RequestBody RegisterRequest request) {
         try {
-            User user;
-            if (request.role() == UserRole.STUDENT && request.gradeLevel() != null) {
-                user = userService.createStudent(
-                        request.email(),
-                        request.password(),
-                        request.firstName(),
-                        request.lastName(),
-                        request.gradeLevel()
-                );
-            } else {
-                user = userService.createUser(
-                        request.email(),
-                        request.password(),
-                        request.firstName(),
-                        request.lastName(),
-                        request.role()
-                );
-            }
-
-            if (request.phone() != null) {
-                user.setPhone(request.phone());
-                user = userService.updateUser(user);
-            }
+            RegisterCommand command = RegisterCommand.from(request);
+            User user = userService.registerUser(command);
 
             LoginResponse.UserResponse userResponse = new LoginResponse.UserResponse(
                     user.getId(),

@@ -6,6 +6,7 @@ import com.shiksha.authentication.domain.UserRole;
 import com.shiksha.authentication.domain.UserService;
 import com.shiksha.authentication.security.JwtTokenProvider;
 import com.shiksha.authentication.web.dto.LoginRequest;
+import com.shiksha.authentication.web.dto.RegisterCommand;
 import com.shiksha.authentication.web.dto.RegisterRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +19,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -55,15 +55,14 @@ class AuthControllerTest {
                 "Doe",
                 "+1234567890",
                 UserRole.TEACHER,
+                null,
                 null
         );
 
         User mockUser = new User("teacher@example.com", "hashedPassword", "John", "Doe", UserRole.TEACHER);
         mockUser.setId(1L);
 
-        when(userService.createUser(anyString(), anyString(), anyString(), anyString(), any(UserRole.class)))
-                .thenReturn(mockUser);
-        when(userService.updateUser(any(User.class)))
+        when(userService.registerUser(any(RegisterCommand.class)))
                 .thenReturn(mockUser);
 
         mockMvc.perform(post("/api/auth/register")
@@ -88,6 +87,7 @@ class AuthControllerTest {
                 "Doe",
                 "+1234567890",
                 UserRole.TEACHER,
+                null,
                 null
         );
 
@@ -108,6 +108,7 @@ class AuthControllerTest {
                 "Doe",
                 "+1234567890",
                 UserRole.TEACHER,
+                null,
                 null
         );
 
@@ -118,9 +119,7 @@ class AuthControllerTest {
         User mockUser = new User("teacher@example.com", "hashedPassword", "John", "Doe", UserRole.TEACHER);
         mockUser.setId(1L);
 
-        when(userService.createUser(anyString(), anyString(), anyString(), anyString(), any(UserRole.class)))
-                .thenReturn(mockUser);
-        when(userService.updateUser(any(User.class)))
+        when(userService.registerUser(any(RegisterCommand.class)))
                 .thenReturn(mockUser);
 
         // Since @WebMvcTest doesn't fully support method security, we expect this to succeed

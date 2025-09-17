@@ -1,6 +1,7 @@
 package com.shiksha.authentication.domain;
 
 import com.shiksha.authentication.domain.models.StudentDto;
+import com.shiksha.authentication.web.dto.RegisterCommand;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -16,10 +17,12 @@ import java.util.Optional;
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
+    private final UserSubjectRepository userSubjectRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, UserSubjectRepository userSubjectRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.userSubjectRepository = userSubjectRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -41,21 +44,69 @@ public class UserService implements UserDetailsService {
         return userRepository.findByRoleAndIsActive(role, true);
     }
 
+
     @Transactional
-    public User createUser(String email, String password, String firstName, String lastName, UserRole role) {
-        if (userRepository.existsByEmail(email)) {
-            throw new IllegalArgumentException("User with email " + email + " already exists");
+    public User registerUser(RegisterCommand command) {
+        if (userRepository.existsByEmail(command.email())) {
+            throw new IllegalArgumentException("User with email " + command.email() + " already exists");
         }
 
-        User user = new User(email, passwordEncoder.encode(password), firstName, lastName, role);
-        return userRepository.save(user);
+        User user = new User(
+                command.email(),
+                passwordEncoder.encode(command.password()),
+                command.firstName(),
+                command.lastName(),
+                command.role()
+        );
+
+        if (command.role() == UserRole.STUDENT && command.gradeLevel() != null) {
+            user.setGradeLevel(command.gradeLevel());
+        }
+
+        if (command.phone() != null) {
+            user.setPhone(command.phone());
+        }
+
+        // Save user first to get the ID
+        user = userRepository.save(user);
+
+        // Create UserSubject entries if subject IDs are provided
+        if (command.subjectIds() != null && !command.subjectIds().isEmpty()) {
+            createUserSubjectEntries(user, command.subjectIds(), command.gradeLevel());
+        }
+
+        return user;
     }
 
-    @Transactional
-    public User createStudent(String email, String password, String firstName, String lastName, Integer gradeLevel) {
-        User user = createUser(email, password, firstName, lastName, UserRole.STUDENT);
-        user.setGradeLevel(gradeLevel);
-        return userRepository.save(user);
+    private void createUserSubjectEntries(User user, List<Long> subjectIds, Integer gradeLevel) {
+        for (Long subjectId : subjectIds) {
+            if (user.getRole() == UserRole.STUDENT) {
+                // Students: enroll in subjects at their specific grade level
+                Integer studentGradeLevel = user.getGradeLevel();
+                if (studentGradeLevel == null) {
+                    throw new IllegalArgumentException("Student grade level is required for subject enrollment");
+                }
+                
+                if (!userSubjectRepository.existsByUserIdAndSubjectIdAndGradeLevel(
+                        user.getId(), subjectId, studentGradeLevel)) {
+                    UserSubject userSubject = new UserSubject(user.getId(), subjectId, studentGradeLevel);
+                    userSubjectRepository.save(userSubject);
+                }
+                
+            } else if (user.getRole() == UserRole.TEACHER) {
+                // Teachers: enroll in subjects for all grade levels (9, 10, 11, 12)
+                int[] gradeLevels = {9, 10, 11, 12};
+                
+                for (int teacherGradeLevel : gradeLevels) {
+                    if (!userSubjectRepository.existsByUserIdAndSubjectIdAndGradeLevel(
+                            user.getId(), subjectId, teacherGradeLevel)) {
+                        UserSubject userSubject = new UserSubject(user.getId(), subjectId, teacherGradeLevel);
+                        userSubjectRepository.save(userSubject);
+                    }
+                }
+            }
+            // ADMIN role doesn't get subject enrollments by default
+        }
     }
 
     @Transactional
@@ -149,6 +200,26 @@ public class UserService implements UserDetailsService {
      */
     public Optional<User> findById(Long userId) {
         return userRepository.findByIdAndIsActive(userId, true);
+    }
+
+    /**
+     * Gets user subject enrollments
+     */
+    public List<UserSubject> getUserSubjectEnrollments(Long userId) {
+        return userSubjectRepository.findByUserId(userId);
+    }
+
+    /**
+     * Enrolls a user in additional subjects
+     */
+    @Transactional
+    public void enrollUserInSubjects(Long userId, List<Long> subjectIds, Integer gradeLevel) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                
+        if (subjectIds != null && !subjectIds.isEmpty()) {
+            createUserSubjectEntries(user, subjectIds, gradeLevel);
+        }
     }
 
 }
