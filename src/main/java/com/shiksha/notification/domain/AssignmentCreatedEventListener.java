@@ -4,6 +4,8 @@ import com.shiksha.academic.domain.model.AssignmentCreatedEvent;
 import com.shiksha.authentication.UserServiceAPI;
 
 import com.shiksha.authentication.domain.models.StudentDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -17,6 +19,7 @@ import java.util.List;
 @Component
 public class AssignmentCreatedEventListener {
 
+    private static final Logger logger = LoggerFactory.getLogger(AssignmentCreatedEventListener.class);
     private final UserServiceAPI userServiceAPI;
     private final EmailService emailService;
 
@@ -50,8 +53,7 @@ public class AssignmentCreatedEventListener {
             System.out.println("✅ Notification processing completed for assignment: " + event.title());
             
         } catch (Exception e) {
-            System.err.println("❌ Error processing assignment notification: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("❌ Error processing assignment notification for assignment: {}", event.title(), e);
         }
     }
 

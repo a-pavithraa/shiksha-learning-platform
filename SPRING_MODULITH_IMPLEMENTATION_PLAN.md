@@ -95,15 +95,34 @@ Assignment entity with:
 - **AssignmentUpdatedEvent**: Notifies of changes
 - **AssignmentDeletedEvent**: Cleanup and notifications
 
-#### 3.4 Assignment REST API
+#### 3.4 Assignment REST API ✅ IMPLEMENTED
 ```java
-POST /api/assignments     # Create assignment with file upload
-GET /api/assignments      # List assignments with filtering
-GET /api/assignments/{id} # Get specific assignment
+POST /api/assignments     # Create assignment with file upload ✅
+GET /api/assignments/{id} # Get specific assignment ✅
+GET /api/assignments/{id}/download # Download assignment file ✅
+
+// NEW ENDPOINTS IMPLEMENTED:
+GET /api/assignments/student?gradeLevel={level}&subjectIds={ids} # Student view assignments ✅
+GET /api/assignments/teacher?gradeLevel={level}&status={status} # Teacher view with filtering ✅
+
+// FUTURE IMPLEMENTATION:
 PUT /api/assignments/{id} # Update assignment details
 DELETE /api/assignments/{id} # Soft delete assignment
-GET /api/assignments/{id}/download # Download assignment file
 ```
+
+**Recent Implementation Status:**
+- ✅ **AssignmentController** with student and teacher endpoints
+- ✅ **AssignmentService** with filtering by grade level and teacher
+- ✅ **AssignmentRepository** with custom queries for teacher filtering
+- ✅ **File Management** integrated with S3 service
+- ✅ **Event Publishing** via AssignmentCreatedEvent
+
+**Key Features Implemented:**
+- Student assignments retrieval by grade level and subjects (from login data)
+- Teacher assignments with filtering by grade level and status (active, inactive, overdue, upcoming)
+- Authentication-based access control
+- Sorted results by creation date
+- Error handling and proper HTTP responses
 
 ### Phase 4: Submission Module Implementation (Week 4-5)
 

@@ -16,9 +16,15 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
 
     // Find active assignments
     List<Assignment> findByIsActiveTrue();
+    Page<Assignment> findByIsActiveTrue(Pageable pageable);
 
     // Find assignments by teacher
     List<Assignment> findByTeacherIdAndIsActiveTrue(Long teacherId);
+    Page<Assignment> findByTeacherIdAndIsActiveTrue(Long teacherId, Pageable pageable);
+
+    // Find assignments by teacher and grade level
+    List<Assignment> findByTeacherIdAndGradeLevelAndIsActiveTrue(Long teacherId, Integer gradeLevel);
+    Page<Assignment> findByTeacherIdAndGradeLevelAndIsActiveTrue(Long teacherId, Integer gradeLevel, Pageable pageable);
 
     // Find assignments by subject and grade level
     List<Assignment> findBySubjectIdAndGradeLevelAndIsActiveTrue(Long subjectId, Integer gradeLevel);

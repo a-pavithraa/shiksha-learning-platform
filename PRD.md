@@ -47,7 +47,15 @@ Shiksha tuition center currently lacks a centralized digital platform for:
 - **Assignment Upload:** As a teacher, I want to upload PDF assignments so students can access them anytime
 - **Assignment Organization:** As a teacher, I want to categorize assignments by subject and grade level
 - **Assignment Access:** As a student, I want to view all assignments for my enrolled subjects
+- **Teacher Assignment View:** As a teacher, I want to view all my created assignments with filtering by grade level and status
+- **Assignment Filtering:** As a teacher, I want to filter assignments by active, inactive, overdue, and upcoming status
 - **Email Notifications:** As a student, I want to receive email notifications when new assignments are posted
+
+**Key API Endpoints:**
+- `POST /api/assignments` - Teacher uploads new assignment with PDF file
+- `GET /api/assignments/student?gradeLevel={level}&subjectIds={ids}` - Student retrieves assignments
+- `GET /api/assignments/teacher?gradeLevel={level}&status={status}` - Teacher retrieves their assignments with filtering
+- `GET /api/assignments/{id}/download` - Download assignment PDF file
 
 ### 2.3 Assignment Submission
 **Must-Have**

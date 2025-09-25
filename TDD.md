@@ -266,6 +266,91 @@ sequenceDiagram
 #### GET /api/assignments/{id}/download
 **Purpose:** Download assignment PDF file
 
+#### GET /api/assignments/student
+**Purpose:** Get assignments for authenticated student based on their grade level and enrolled subjects
+
+**Query Parameters:**
+- `gradeLevel` (required): Student's grade level (9-12)
+- `subjectIds` (required): Array of subject IDs the student is enrolled in
+- `page` (optional): Page number for pagination (default: 1)
+
+**Request Example:**
+```
+GET /api/assignments/student?gradeLevel=10&subjectIds=1&subjectIds=2&page=1
+```
+
+**Response Payload:**
+```json
+{
+  "status": "success",
+  "data": {
+    "assignments": [
+      {
+        "id": 456,
+        "teacherId": 123,
+        "subjectId": 1,
+        "gradeLevel": 10,
+        "title": "Quadratic Equations Practice",
+        "description": "Solve problems 1-15",
+        "fileName": "quadratic_equations.pdf",
+        "dueDate": "2025-02-15",
+        "createdAt": "2025-01-25T09:15:00Z",
+        "updatedAt": "2025-01-25T09:15:00Z"
+      }
+    ],
+    "gradeLevel": 10,
+    "requestedSubjects": [1, 2]
+  }
+}
+```
+
+#### GET /api/assignments/teacher
+**Purpose:** Get assignments created by authenticated teacher with optional filtering
+
+**Query Parameters:**
+- `gradeLevel` (optional): Filter by grade level (9-12)
+- `status` (optional): Filter by status - "active", "inactive", "overdue", "upcoming"
+- `page` (optional): Page number for pagination (default: 1)
+
+**Request Examples:**
+```
+GET /api/assignments/teacher
+GET /api/assignments/teacher?gradeLevel=10
+GET /api/assignments/teacher?status=overdue
+GET /api/assignments/teacher?gradeLevel=11&status=active
+```
+
+**Response Payload:**
+```json
+{
+  "status": "success",
+  "data": {
+    "assignments": [
+      {
+        "id": 456,
+        "teacherId": 123,
+        "subjectId": 1,
+        "gradeLevel": 10,
+        "title": "Quadratic Equations Practice",
+        "description": "Solve problems 1-15",
+        "fileName": "quadratic_equations.pdf",
+        "dueDate": "2025-02-15",
+        "createdAt": "2025-01-25T09:15:00Z",
+        "updatedAt": "2025-01-25T09:15:00Z"
+      }
+    ],
+    "filters": {
+      "teacherId": 123,
+      "gradeLevel": 10,
+      "status": "overdue"
+    },
+    "totalCount": 5
+  }
+}
+```
+
+**Note:** Overdue submissions tracking will be implemented when AssignmentSubmission entity is created.
+
 ### Assignment Submission Endpoints
 
 #### POST /api/submissions

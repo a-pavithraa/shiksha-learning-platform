@@ -3,7 +3,7 @@
 ## Register User (Admin/Teacher access only)
 POST http://localhost:8080/api/auth/register
 Content-Type: application/json
-Authorization: Bearer {{adminToken}}
+Authorization: Bearer {{teacherToken}}
 
 {
   "email": "student1@example.com",
@@ -73,6 +73,20 @@ Content-Type: application/json
 > {%
 client.global.set("teacherToken", response.body.data.token);
 client.log("Teacher token saved: " + response.body.data.token);
+%}
+
+### Login as Student
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "student1@example.com",
+  "password": "password123"
+}
+
+> {%
+client.global.set("studentToken", response.body.data.token);
+client.log("Student token saved: " + response.body.data.token);
 %}
 
 ###
@@ -162,6 +176,24 @@ Authorization: Bearer {{teacherToken}}
 
 ## Download Assignment
 GET http://localhost:8080/api/assignments/1/download
+Authorization: Bearer {{teacherToken}}
+
+###
+
+## Get Assignments for Student
+GET http://localhost:8080/api/assignments/student?gradeLevel=10&subjectIds=1,2&page=1
+Authorization: Bearer {{studentToken}}
+
+###
+
+## Get Assignments by Teacher (all)
+GET http://localhost:8080/api/assignments/teacher
+Authorization: Bearer {{teacherToken}}
+
+###
+
+## Get Assignments by Teacher (filtered by grade level)
+GET http://localhost:8080/api/assignments/teacher?gradeLevel=10&page=1
 Authorization: Bearer {{teacherToken}}
 
 ###

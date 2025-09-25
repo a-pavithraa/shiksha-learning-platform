@@ -1,6 +1,9 @@
 package com.shiksha.academic.domain;
 
+import com.shiksha.academic.domain.command.CreateAssignmentCommand;
+import com.shiksha.academic.domain.command.UpdateAssignmentCommand;
 import com.shiksha.academic.domain.model.AssignmentCreatedEvent;
+import com.shiksha.academic.domain.models.AssignmentDto;
 import com.shiksha.common.models.PagedResult;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
@@ -32,21 +35,17 @@ public class AssignmentService {
         this.eventPublisher = eventPublisher;
     }
 
-    public Assignment createAssignment(Long teacherId, Long subjectId, Integer gradeLevel,
-                                     String title, String description, String dueDate,
-                                     MultipartFile file) throws IOException {
-        
-        // Validate input
-        validateAssignmentInput(teacherId, subjectId, gradeLevel, title, file);
+    public AssignmentDto createAssignment(CreateAssignmentCommand command) throws IOException {
         
         // Upload file to S3
-        String filePath = s3FileService.uploadFile(file, "assignments");
-        LocalDate dueDateObj = dueDate != null ? parseToLocalDate(dueDate) : null;
+        String filePath = s3FileService.uploadFile(command.file(), "assignments");
+        LocalDate dueDateObj = command.dueDate() != null ? parseToLocalDate(command.dueDate()) : null;
         
         // Create assignment entity
         Assignment assignment = new Assignment(
-                teacherId, subjectId, gradeLevel, title, description,
-                filePath, file.getOriginalFilename(), dueDateObj
+                command.teacherId(), command.subjectId(), command.gradeLevel(), 
+                command.title(), command.description(),
+                filePath, command.file().getOriginalFilename(), dueDateObj
         );
         
         // Save to database
@@ -58,31 +57,67 @@ public class AssignmentService {
         
         System.out.println("🚀 Published AssignmentCreatedEvent for assignment: " + savedAssignment.getTitle());
         
-        return savedAssignment;
+        return AssignmentDto.from(savedAssignment);
     }
 
     @Transactional(readOnly = true)
-    public List<Assignment> findActiveAssignments() {
-        return assignmentRepository.findByIsActiveTrue();
+    public List<AssignmentDto> findActiveAssignments() {
+        return assignmentRepository.findByIsActiveTrue().stream()
+                .map(AssignmentDto::from)
+                .toList();
     }
 
     @Transactional(readOnly = true)
-    public List<Assignment> findAssignmentsByTeacher(Long teacherId) {
-        return assignmentRepository.findByTeacherIdAndIsActiveTrue(teacherId);
+    public PagedResult<AssignmentDto> findActiveAssignments(int pageNo) {
+        Pageable pageable = Pageable.ofSize(DEFAULT_PAGE_SIZE).withPage(pageNo - 1);
+        var results = assignmentRepository.findByIsActiveTrue(pageable);
+        var dtoResults = results.map(AssignmentDto::from);
+        return new PagedResult<>(dtoResults);
+    }
+
+    @Transactional(readOnly = true)
+    public List<AssignmentDto> findAssignmentsByTeacher(Long teacherId) {
+        return assignmentRepository.findByTeacherIdAndIsActiveTrue(teacherId).stream()
+                .map(AssignmentDto::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResult<AssignmentDto> findAssignmentsByTeacher(Long teacherId, int pageNo) {
+        Pageable pageable = Pageable.ofSize(DEFAULT_PAGE_SIZE).withPage(pageNo - 1);
+        var results = assignmentRepository.findByTeacherIdAndIsActiveTrue(teacherId, pageable);
+        var dtoResults = results.map(AssignmentDto::from);
+        return new PagedResult<>(dtoResults);
+    }
+
+    @Transactional(readOnly = true)
+    public List<AssignmentDto> findAssignmentsByTeacherAndGradeLevel(Long teacherId, Integer gradeLevel) {
+        return assignmentRepository.findByTeacherIdAndGradeLevelAndIsActiveTrue(teacherId, gradeLevel).stream()
+                .map(AssignmentDto::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResult<AssignmentDto> findAssignmentsByTeacherAndGradeLevel(Long teacherId, Integer gradeLevel, int pageNo) {
+        Pageable pageable = Pageable.ofSize(DEFAULT_PAGE_SIZE).withPage(pageNo - 1);
+        var results = assignmentRepository.findByTeacherIdAndGradeLevelAndIsActiveTrue(teacherId, gradeLevel, pageable);
+        var dtoResults = results.map(AssignmentDto::from);
+        return new PagedResult<>(dtoResults);
     }
 
 
     @Transactional(readOnly = true)
-    public PagedResult<Assignment> findAssignmentsBySubjectAndGrade(Long subjectId, Integer gradeLevel, int pageNo) {
+    public PagedResult<AssignmentDto> findAssignmentsBySubjectAndGrade(Long subjectId, Integer gradeLevel, int pageNo) {
         Pageable pageable = Pageable.ofSize(DEFAULT_PAGE_SIZE).withPage(pageNo - 1);
         var results = assignmentRepository.findBySubjectIdAndGradeLevelAndIsActiveTrue(subjectId, gradeLevel, pageable);
-        return new PagedResult<>(results);
-
+        var dtoResults = results.map(AssignmentDto::from);
+        return new PagedResult<>(dtoResults);
     }
 
     @Transactional(readOnly = true)
-    public Optional<Assignment> findById(Long id) {
-        return assignmentRepository.findByIdAndIsActiveTrue(id);
+    public Optional<AssignmentDto> findById(Long id) {
+        return assignmentRepository.findByIdAndIsActiveTrue(id)
+                .map(AssignmentDto::from);
     }
 
     @Transactional(readOnly = true)
@@ -93,21 +128,22 @@ public class AssignmentService {
         return s3FileService.generatePresignedDownloadUrl(assignment.getFilePath());
     }
 
-    public Assignment updateAssignment(Long id, String title, String description, LocalDate dueDate) {
-        Assignment assignment = assignmentRepository.findByIdAndIsActiveTrue(id)
+    public AssignmentDto updateAssignment(UpdateAssignmentCommand command) {
+        Assignment assignment = assignmentRepository.findByIdAndIsActiveTrue(command.id())
                 .orElseThrow(() -> new IllegalArgumentException("Assignment not found"));
         
-        if (title != null && !title.trim().isEmpty()) {
-            assignment.setTitle(title.trim());
+        if (command.title() != null && !command.title().trim().isEmpty()) {
+            assignment.setTitle(command.title().trim());
         }
-        if (description != null) {
-            assignment.setDescription(description.trim());
+        if (command.description() != null) {
+            assignment.setDescription(command.description().trim());
         }
-        if (dueDate != null) {
-            assignment.setDueDate(dueDate);
+        if (command.dueDate() != null) {
+            assignment.setDueDate(command.dueDate());
         }
         
-        return assignmentRepository.save(assignment);
+        Assignment updatedAssignment = assignmentRepository.save(assignment);
+        return AssignmentDto.from(updatedAssignment);
     }
 
     public void deleteAssignment(Long id) {
@@ -130,24 +166,6 @@ public class AssignmentService {
         }
     }
 
-    private void validateAssignmentInput(Long teacherId, Long subjectId, Integer gradeLevel, 
-                                       String title, MultipartFile file) {
-        if (teacherId == null) {
-            throw new IllegalArgumentException("Teacher ID cannot be null");
-        }
-        if (subjectId == null) {
-            throw new IllegalArgumentException("Subject ID cannot be null");
-        }
-        if (gradeLevel == null || gradeLevel < 9 || gradeLevel > 12) {
-            throw new IllegalArgumentException("Grade level must be between 9 and 12");
-        }
-        if (title == null || title.trim().isEmpty()) {
-            throw new IllegalArgumentException("Title cannot be empty");
-        }
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("File cannot be empty");
-        }
-    }
 
 
 

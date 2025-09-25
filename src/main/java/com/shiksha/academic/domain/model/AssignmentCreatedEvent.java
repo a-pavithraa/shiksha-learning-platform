@@ -1,6 +1,7 @@
 package com.shiksha.academic.domain.model;
 
 import com.shiksha.academic.domain.Assignment;
+import org.springframework.modulith.events.Externalized;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
  * Domain event published when a new assignment is created
  * Following Spring Modulith event-driven architecture
  */
+
 public  record AssignmentCreatedEvent(
                 Long assignmentId,
                 Long teacherId,
