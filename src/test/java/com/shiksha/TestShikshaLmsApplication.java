@@ -1,4 +1,4 @@
-package shiksha;
+package com.shiksha;
 
 import com.shiksha.ShikshaLmsApplication;
 import com.shiksha.TestcontainersConfiguration;

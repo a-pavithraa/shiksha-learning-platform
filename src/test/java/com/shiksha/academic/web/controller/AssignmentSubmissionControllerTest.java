@@ -1,4 +1,4 @@
-package shiksha.academic.web.controller;
+package com.shiksha.academic.web.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shiksha.academic.domain.AssignmentSubmissionService;

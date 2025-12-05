@@ -1,4 +1,4 @@
-package shiksha.integration;
+package com.shiksha.integration;
 
 import com.shiksha.TestcontainersConfiguration;
 import org.junit.jupiter.api.Test;

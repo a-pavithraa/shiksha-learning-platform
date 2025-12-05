@@ -1,4 +1,4 @@
-package shiksha.authentication.web;
+package com.shiksha.authentication.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shiksha.authentication.domain.User;

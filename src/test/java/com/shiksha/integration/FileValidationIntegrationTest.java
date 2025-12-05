@@ -1,4 +1,4 @@
-package shiksha.integration;
+package com.shiksha.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shiksha.TestcontainersConfiguration;

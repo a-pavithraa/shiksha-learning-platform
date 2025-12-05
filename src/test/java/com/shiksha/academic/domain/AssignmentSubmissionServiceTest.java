@@ -1,4 +1,4 @@
-package shiksha.academic.domain;
+package com.shiksha.academic.domain;
 
 import com.shiksha.academic.domain.*;
 import com.shiksha.academic.domain.command.SubmitAssignmentCommand;
