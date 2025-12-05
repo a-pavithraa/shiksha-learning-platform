@@ -1,12 +1,12 @@
-package com.shiksha.academic.web;
+package com.shiksha.academic.web.controller;
 
-import com.shiksha.academic.domain.Assignment;
 import com.shiksha.academic.domain.AssignmentService;
 import com.shiksha.academic.domain.command.CreateAssignmentCommand;
 import com.shiksha.academic.domain.models.AssignmentDto;
 import com.shiksha.academic.web.dto.AssignmentResponse;
 import com.shiksha.academic.web.dto.CreateAssignmentRequest;
-import com.shiksha.authentication.domain.User;
+import com.shiksha.authentication.UserServiceAPI;
+import com.shiksha.authentication.domain.models.UserDto;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -31,9 +31,11 @@ public class AssignmentController {
 
     private static final Logger logger = LoggerFactory.getLogger(AssignmentController.class);
     private final AssignmentService assignmentService;
+    private final UserServiceAPI userServiceAPI;
 
-    public AssignmentController(AssignmentService assignmentService) {
+    public AssignmentController(AssignmentService assignmentService, UserServiceAPI userServiceAPI) {
         this.assignmentService = assignmentService;
+        this.userServiceAPI = userServiceAPI;
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -263,15 +265,14 @@ public class AssignmentController {
             throw new IllegalStateException("User must be authenticated");
         }
         Object principal = authentication.getPrincipal();
-        if (principal instanceof User user) {
-            if (user.getId() == null) {
+        if (principal instanceof UserDetails userDetails) {
+            // Use UserServiceAPI to get user ID by username (email)
+            String username = userDetails.getUsername();
+            UserDto userDto = userServiceAPI.findByUsername(username);
+            if (userDto.id() == null) {
                 throw new IllegalStateException("Authenticated user does not have an ID");
             }
-            return user.getId();
-        }
-        if (principal instanceof UserDetails) {
-            // Principal is a UserDetails without ID information (unexpected for our app)
-            throw new IllegalStateException("Unable to extract user ID from authentication principal");
+            return userDto.id();
         }
         throw new IllegalStateException("Unsupported authentication principal type: " + principal.getClass().getName());
     }

@@ -174,4 +174,8 @@ public class Assignment {
     public void setIsActive(Boolean isActive) {
         this.isActive = isActive;
     }
+
+    public boolean isActive() {
+        return Boolean.TRUE.equals(isActive);
+    }
 }

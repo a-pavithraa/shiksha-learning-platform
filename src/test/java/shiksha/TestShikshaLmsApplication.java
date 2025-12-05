@@ -1,5 +1,7 @@
-package com.shiksha;
+package shiksha;
 
+import com.shiksha.ShikshaLmsApplication;
+import com.shiksha.TestcontainersConfiguration;
 import org.springframework.boot.SpringApplication;
 
 public class TestShikshaLmsApplication {

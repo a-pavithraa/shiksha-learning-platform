@@ -4,17 +4,16 @@ import com.shiksha.academic.domain.command.CreateAssignmentCommand;
 import com.shiksha.academic.domain.command.UpdateAssignmentCommand;
 import com.shiksha.academic.domain.model.AssignmentCreatedEvent;
 import com.shiksha.academic.domain.models.AssignmentDto;
+import com.shiksha.common.S3FileService;
 import com.shiksha.common.models.PagedResult;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,7 +37,7 @@ public class AssignmentService {
     public AssignmentDto createAssignment(CreateAssignmentCommand command) throws IOException {
         
         // Upload file to S3
-        String filePath = s3FileService.uploadFile(command.file(), "assignments");
+        String filePath = s3FileService.uploadFile("assignments",command.file());
         LocalDate dueDateObj = command.dueDate() != null ? parseToLocalDate(command.dueDate()) : null;
         
         // Create assignment entity

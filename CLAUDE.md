@@ -136,3 +136,17 @@ userService.createUser(request);
 - `*.web.dto` - Request/Response DTOs for web layer
 - `*.domain.command` - Command objects for service layer input
 - `*.domain.models` - DTOs for cross-module communication
+
+## Recent Features Added
+
+### Assignment Submission Upload (2025-09-25)
+- **Endpoint**: POST `/api/assignments/{assignmentId}/submissions`
+- **Module**: Academic module with Notification module integration
+- **Key Components**:
+  - `AssignmentSubmissionController` - Multipart file upload handling
+  - `AssignmentSubmissionService` - Business logic and S3 integration
+  - `AssignmentSubmission` entity - Database persistence
+  - `AssignmentSubmissionCreatedEvent` - Cross-module communication
+  - S3 integration with retry logic for file storage
+- **Validations**: PDF only, 5MB max, student enrollment check
+- **Features**: Late submission detection, resubmission handling, automated notifications

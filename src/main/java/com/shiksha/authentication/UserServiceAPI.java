@@ -1,11 +1,12 @@
 package com.shiksha.authentication;
 
-import com.shiksha.authentication.domain.User;
 import com.shiksha.authentication.domain.UserService;
 import com.shiksha.authentication.domain.models.StudentDto;
+import com.shiksha.authentication.domain.models.UserDto;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * API class for cross-module access to user data
@@ -24,7 +25,7 @@ public class UserServiceAPI {
     /**
      * Get all students enrolled in a specific subject and grade level
      * Used by notification module to send assignment notifications
-     * 
+     *
      * @param subjectId the subject ID
      * @param gradeLevel the grade level (9-12)
      * @return list of students enrolled in the subject and grade
@@ -34,26 +35,25 @@ public class UserServiceAPI {
     }
 
     /**
-     * Get user's email for sending notifications
-     * 
+     * Get user by ID
+     * Used by academic module to access user information
+     *
      * @param userId the user ID
-     * @return user's email address, or null if user not found
+     * @return UserDto containing user information
      */
-    public String getUserEmail(Long userId) {
-        return userService.findById(userId)
-                .map(User::getEmail)
-                .orElse(null);
+    public Optional<UserDto> findById(Long userId) {
+        return userService.findById(userId);
     }
 
     /**
-     * Get user's full name for personalized notifications
-     * 
-     * @param userId the user ID
-     * @return user's full name, or "Student" if user not found
+     * Get user by username (email)
+     * Used by academic module to extract user ID from authentication
+     *
+     * @param username the username (email)
+     * @return UserDto containing user information
      */
-    public String getUserFullName(Long userId) {
-        return userService.findById(userId)
-                .map(User::getFullName)
-                .orElse("Student");
+    public UserDto findByUsername(String username) {
+        return userService.findByUsername(username)
+                .orElseThrow(() -> new IllegalStateException("User not found with username: " + username));
     }
 }

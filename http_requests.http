@@ -150,7 +150,7 @@ Content-Disposition: form-data; name="gradeLevel"
 --WebAppBoundary
 Content-Disposition: form-data; name="title"
 
-Math Assignment 1
+Math Assignment 5
 --WebAppBoundary
 Content-Disposition: form-data; name="description"
 
@@ -158,7 +158,7 @@ Complete the algebra problems in chapter 5
 --WebAppBoundary
 Content-Disposition: form-data; name="dueDate"
 
-2024-12-31T23:59:59
+2025-10-06T23:59:59
 --WebAppBoundary
 Content-Disposition: form-data; name="file"; filename="55-4-3_Physics.pdf"
 Content-Type: application/pdf
@@ -194,6 +194,46 @@ Authorization: Bearer {{teacherToken}}
 
 ## Get Assignments by Teacher (filtered by grade level)
 GET http://localhost:8080/api/assignments/teacher?gradeLevel=10&page=1
+Authorization: Bearer {{teacherToken}}
+
+###
+
+### Assignment Submission Controller Endpoints
+
+## Submit Assignment (Student)
+POST http://localhost:8080/api/assignments/1/submissions
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+Authorization: Bearer {{studentToken}}
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="assignment-submission.pdf"
+Content-Type: application/pdf
+
+< /Users/pavithra/Downloads/55-4-3_Physics.pdf
+--WebAppBoundary--
+
+###
+
+## Get My Submission for an Assignment (Student)
+GET http://localhost:8080/api/assignments/1/submissions/my
+Authorization: Bearer {{studentToken}}
+
+###
+
+## Get All Submissions for an Assignment (Teacher)
+GET http://localhost:8080/api/assignments/1/submissions
+Authorization: Bearer {{teacherToken}}
+
+###
+
+## Get All My Submissions (Student)
+GET http://localhost:8080/api/assignments/submissions/my
+Authorization: Bearer {{studentToken}}
+
+###
+
+## Get Submissions Requiring Grading (Teacher)
+GET http://localhost:8080/api/assignments/submissions/requiring-grading
 Authorization: Bearer {{teacherToken}}
 
 ###

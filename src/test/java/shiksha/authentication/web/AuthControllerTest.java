@@ -1,10 +1,11 @@
-package com.shiksha.authentication.web;
+package shiksha.authentication.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shiksha.authentication.domain.User;
 import com.shiksha.authentication.domain.UserRole;
 import com.shiksha.authentication.domain.UserService;
 import com.shiksha.authentication.security.JwtTokenProvider;
+import com.shiksha.authentication.web.AuthController;
 import com.shiksha.authentication.web.dto.LoginRequest;
 import com.shiksha.authentication.web.dto.RegisterCommand;
 import com.shiksha.authentication.web.dto.RegisterRequest;

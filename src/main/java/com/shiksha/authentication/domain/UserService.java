@@ -1,6 +1,7 @@
 package com.shiksha.authentication.domain;
 
 import com.shiksha.authentication.domain.models.StudentDto;
+import com.shiksha.authentication.domain.models.UserDto;
 import com.shiksha.authentication.web.dto.RegisterCommand;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -181,11 +182,22 @@ public class UserService implements UserDetailsService {
         );
     }
 
+    private UserDto mapUserToUserDto(User user){
+        return new UserDto(user.getId(),user.getEmail(),user.getFirstName(),user.getLastName());
+    }
+
     /**
      * Gets teacher information by ID for cross-module access
      */
-    public Optional<User> findTeacherById(Long teacherId) {
-        return userRepository.findByIdAndRoleAndIsActive(teacherId, UserRole.TEACHER, true);
+    public Optional<UserDto> findById(Long teacherId) {
+        return userRepository.findByIdAndIsActive(teacherId, true).map(this::mapUserToUserDto);
+    }
+
+    /**
+     * Gets user information by email/username for cross-module access
+     */
+    public Optional<UserDto> findByUsername(String email) {
+        return userRepository.findByEmail(email).map(this::mapUserToUserDto);
     }
 
     /**
@@ -195,12 +207,6 @@ public class UserService implements UserDetailsService {
         return userRepository.findByIdAndRoleAndIsActive(studentId, UserRole.STUDENT, true);
     }
 
-    /**
-     * Gets user by ID regardless of role
-     */
-    public Optional<User> findById(Long userId) {
-        return userRepository.findByIdAndIsActive(userId, true);
-    }
 
     /**
      * Gets user subject enrollments
